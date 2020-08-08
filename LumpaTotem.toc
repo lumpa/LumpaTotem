@@ -1,0 +1,10 @@
+## Interface: 11303
+## Title: LumpaTotemAddon
+## Notes: LumpaTotemAddon notes
+## SavedVariables: Storage
+
+# Libraries
+embeds.xml
+
+core.lua
+LumpaTotem.xml
