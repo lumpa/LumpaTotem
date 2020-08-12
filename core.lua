@@ -9,6 +9,7 @@ local combat = false
 local rootFrame = nil;
 
 local buttons = {}
+-- local btnMissing = nil;
 
 -- local totemIndex_rev = {
 -- 	fire = 1,
@@ -51,28 +52,28 @@ local buffs = {
 
 local activeTotems = {
 	earth = {
-		name = "",
-		timeleft = 0,
+		-- name = "",
+		-- timeleft = 0,
 		btn = nil,
-		f_timeLeft = nil
+		-- f_timeLeft = nil
 	},
 	fire = {
-		name = "",
-		timeleft = 0,
+		-- name = "",
+		-- timeleft = 0,
 		btn = nil,
-		f_timeLeft = nil
+		-- f_timeLeft = nil
 	},
 	water = {
-		name = "",
-		timeleft = 0,
+		-- name = "",
+		-- timeleft = 0,
 		btn = nil,
-		f_timeLeft = nil
+		-- f_timeLeft = nil
 	},
 	air = {
-		name = "",
-		timeleft = 0,
+		-- name = "",
+		-- timeleft = 0,
 		btn = nil,
-		f_timeLeft = nil
+		-- f_timeLeft = nil
 	}
 }
 local revlookup = {
@@ -289,7 +290,7 @@ local tbl = {
 SLASH_LUMPATOTEM1 = "/lumpatotem"
 SlashCmdList["LUMPATOTEM"] = function(msg)
 	argv = {}
-	for arg in string.gmatch(string.lower(msg), '[%a%d%-%.]+') do
+	for arg in string.gmatch(string.lower(msg), '[%a%d%-%.%/]+') do
 		table.insert(argv, arg);
 	end
 
@@ -298,21 +299,57 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			Storage["x"] = tonumber(argv[2]);
 			MoveRootFrame();
 		end
-		print("x =", Storage["x"])
+		print("LumpaTotem rootFrame x:", Storage["x"])
+
 	elseif argv[1] == "y" then
 		if table.getn(argv) >= 2 then
 			Storage["y"] = tonumber(argv[2]);
 			MoveRootFrame();
 		end
-		print("y =", Storage["y"])
+		print("LumpaTotem rootFrame y:", Storage["y"])
+
+	elseif argv[1] == "reset" then
+		if table.getn(argv) >= 2 then
+			Storage["reset"] = argv[2];
+			SetMacro(macroName)
+		end
+		print("LumpaTotem reset (for castsequence):", Storage["reset"]);
+
+	elseif argv[1] == "endwithnil" then
+		if table.getn(argv) >= 2 then
+			Storage["endwithnil"] = tonumber(argv[2])
+			SetMacro(macroName)
+		end
+		print("LumpaTotem castsequence ending with nil:", Storage["endwithnil"]);
+
+	elseif argv[1] == "anchor" then
+		if table.getn(argv) >= 2 then
+			Storage["anchor"] = argv[2]
+			MoveRootFrame()
+		end
+		print("LumpaTotem anchor:", Storage["anchor"]);
+
+	elseif argv[1] == "startattack" then
+		if table.getn(argv) >= 2 then
+			Storage["startattack"] = tonumber(argv[2])
+			SetMacro(macroName)
+		end
+		print("LumpaTotem startattack:", Storage["startattack"]);
+
 	else
 		print("/lumpatotem x")
 		print("/lumpatotem y")
+		print("/lumpatotem reset")
+		print("/lumpatotem endwithnil TRUE|FALSE")
+		print("/lumpatotem anchor CENTER|BOTTOMLEFT|TOPLEFT|BOTTOMRIGHT|TOPRIGHT")
+		print("/lumpatotem startattack TRUE|FALSE")
 	end
 end
 
 function MoveRootFrame()
-	rootFrame:SetPoint("CENTER", Storage["x"], Storage["y"])
+	-- print("Moving root frame to", Storage["anchor"], Storage["x"], Storage["y"])
+	rootFrame:ClearAllPoints();
+	rootFrame:SetPoint(Storage["anchor"], UIParent, Storage["x"], Storage["y"])
 end
 
 local function addEventListeners(self)
@@ -322,8 +359,7 @@ local function addEventListeners(self)
 end
 
 local function onDragStart(self, mousebutton, ...)
-	-- print(mousebutton)
-	if mousebutton == "LeftButton" then
+	if mousebutton == "LeftButton" and combat == false then
 		dragging = self
 		DraggingLoop();
 	end
@@ -331,14 +367,6 @@ end
 
 local function onDragStop(self, mousebutton, ...)
 	dragging = nil
-	local newOrder = {}
-
-	for i, btn in pairs(buttons) do
-		newOrder[i] = btn.totemElement
-	end
-
-	Storage["order"] = newOrder;
-	SetMacro(macroName)
 end
 
 function DraggingLoop()
@@ -356,9 +384,15 @@ function DraggingLoop()
 	if overBin ~= currentBin then
 		b = table.remove(buttons, currentBin)
 		table.insert(buttons, overBin, b)
-	end
+		RedrawButtonLocations();
 
-	RedrawButtonLocations();
+		local newOrder = {}
+		for i, btn in pairs(buttons) do
+			newOrder[i] = btn.totemElement
+		end
+		Storage["order"] = newOrder;
+		SetMacro(macroName)
+	end
 
 	C_Timer.After(0.01, DraggingLoop)
 end
@@ -409,36 +443,52 @@ function LumpaTotem:OnInitialize()
 	print(Storage)
 	if (Storage == nil) then
 		print("storage was nil")
-		Storage = {
-			earth = {
-				idx = 0,
-				name = "",
-				short = "",
-				enabled = true
-			},
-			fire = {
-				idx = 0,
-				name = "",
-				short = "",
-				enabled = true
-			},
-			water = {
-				idx = 0,
-				name = "",
-				short = "",
-				enabled = true
-			},
-			air = {
-				idx = 0,
-				name = "",
-				short = "",
-				enabled = true
-			},
-			order = {"air", "earth", "fire", "water"},
-			x = 0,
-			y = 0
-		}
+		Storage = {}
+		-- Storage = {
+		-- 	earth = {
+		-- 		idx = 0,
+		-- 		name = "",
+		-- 		short = "",
+		-- 		enabled = true
+		-- 	},
+		-- 	fire = {
+		-- 		idx = 0,
+		-- 		name = "",
+		-- 		short = "",
+		-- 		enabled = true
+		-- 	},
+		-- 	water = {
+		-- 		idx = 0,
+		-- 		name = "",
+		-- 		short = "",
+		-- 		enabled = true
+		-- 	},
+		-- 	air = {
+		-- 		idx = 0,
+		-- 		name = "",
+		-- 		short = "",
+		-- 		enabled = true
+		-- 	},
+		-- 	order = {"air", "earth", "fire", "water"},
+		-- 	x = 0,
+		-- 	y = 0,
+		-- 	reset = "combat",
+		-- 	startattack = true,
+		-- 	endwithnil = true,
+		-- 	anchor = "CENTER"
+		-- }
 	end
+	if (Storage["earth"] == nil) then 		Storage["earth"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	if (Storage["fire"] == nil) then 		Storage["fire"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	if (Storage["water"] == nil) then 		Storage["water"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	if (Storage["air"] == nil) then			Storage["air"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	if (Storage["order"] == nil) then 		Storage["order"] = 			{"air", "earth", "fire", "water"} end
+	if (Storage["startattack"] == nil) then Storage["startattack"] = 	1 end
+	if (Storage["endwithnil"] == nil) then 	Storage["endwithnil"] = 	1 end
+	if (Storage["anchor"] == nil) then 		Storage["anchor"] = 		"CENTER" end
+	if (Storage["reset"] == nil) then 		Storage["reset"] = 			"combat/10" end
+	if (Storage["x"] == nil) then 			Storage["x"] = 				0 end
+	if (Storage["y"] == nil) then 			Storage["y"] =				0 end
 	CreateTotemBarFrame()
 	LumpaTotem_Loop()
 end
@@ -464,12 +514,17 @@ function LumpaTotem_Loop()
 end
 
 function LumpaTotem_LoopTick()
+	-- placedElements = {
+	-- 	["earth"] = false,
+	-- 	["fire"] = false,
+	-- 	["water"] = false,
+	-- 	["air"] = false
+	-- }
+
 	for i=1,4 do
 		local arg1, totemName, startTime, duration = GetTotemInfo(i)
 		timeLeft = GetTotemTimeLeft(i)
 		el = elements[i]
-		-- el = Storage["elements"][i]
-		-- el = 
 
 		btn = activeTotems[el]["btn"]
 		if timeLeft == 0 then
@@ -479,6 +534,12 @@ function LumpaTotem_LoopTick()
 			btn.text_timeLeft:SetText(timeLeft)
 		end
 
+		local start, duration = GetSpellCooldown(Storage[el]["name"])
+		-- print(Storage[el]["name"], start, duration)
+		if start ~= nil and duration ~= nil then
+			btn.cd:SetCooldown(start, duration)
+		end
+
 		btn.texture:SetVertexColor(1,1,1) -- temp test
 
 		totemName = TrimTotemString(totemName)
@@ -486,6 +547,7 @@ function LumpaTotem_LoopTick()
 			local id = revlookup[el][totemName]
 			auraName = tbl[el][id]["buff"]
 			if timeLeft > 0 then -- if totem is alive
+				-- placedElements[el] = true
 				if auraName ~= nil then -- only if totem has aura
 					if buffs[auraName] == true then
 						btn.texture:SetVertexColor(0,1,0)
@@ -501,7 +563,23 @@ function LumpaTotem_LoopTick()
 		end
 	end
 
-	-- C_Timer.After(0.1, LumpaTotem_Loop)
+	-- local firstUnplaced = nil
+	-- -- print()
+	-- for element,b in pairs(placedElements) do
+	-- 	-- print(element,b)
+	-- 	if b == false then
+	-- 		firstUnplaced = element
+	-- 		break
+	-- 	end
+	-- end
+
+	-- if firstUnplaced ~= nil then
+	-- 	-- print("firstUnplaced", firstUnplaced)
+	-- 	-- btnMissing:SetAttribute("spell", Storage[firstUnplaced]["name"])
+	-- 	-- buttons[1]:Click("LeftButton")
+	-- else
+	-- 	-- btnMissing:SetAttribute("spell", nil)
+	-- end
 end
 
 
@@ -511,10 +589,23 @@ function LumpaTotem_OnLoad()
 end
 
 function CreateTotemBarFrame()
-	local f = CreateFrame("Frame",nil,UIParent)
+	local f = CreateFrame("Frame","LumpaTotemRootFrame",UIParent)
 	f:SetFrameStrata("BACKGROUND")
 	f:SetWidth(256)
 	f:SetHeight(64)
+
+	-- btnMissing = CreateFrame("Button", "MyButtonName", UIParent, "SecureActionButtonTemplate")
+	-- SetOverrideBindingClick(btnMissing, true, "1", "MyButtonName")
+	-- btnMissing:SetWidth(64)
+	-- btnMissing:SetHeight(64)
+	-- btnMissing:SetPoint("CENTER", -100, -100)
+	-- btnMissing:SetBackdrop({
+	-- 	edgeFile = [[Interface\Buttons\WHITE8x8]],
+	-- 	edgeSize = 5,
+	-- })
+	-- btnMissing:SetBackdropBorderColor(1,1,1)
+	-- btnMissing:SetAttribute("type", "spell");
+
 
 	-- f:SetBackdrop({
 	-- 	edgeFile = [[Interface\Buttons\WHITE8x8]],
@@ -523,7 +614,9 @@ function CreateTotemBarFrame()
 	-- f:SetBackdropBorderColor(0, 0, 0)
 
 	for i,v in ipairs(Storage["order"]) do
-		local btn = CreateFrame("Button", f, UIParent)
+		local btn = CreateFrame("Button", f, UIParent, "SecureActionButtonTemplate")
+		btn:SetAttribute("type", "spell"); -- Unmodified left click.
+
 		btn:SetWidth(64)
 		btn:SetHeight(64)
 
@@ -547,8 +640,6 @@ function CreateTotemBarFrame()
 		btn.text_name:SetFont("Fonts\\ARIALN.ttf", 13, "OUTLINE")
 		btn.text_name:SetPoint("BOTTOMLEFT", 0, 5)
 		btn.text_name:SetWidth(64)
-		-- btn.text_name:SetHeight(64)
-		-- btn.text:SetText("hej")
 		local short = Storage[v]["short"]
 		btn.text_name:SetText(short)
 
@@ -560,13 +651,20 @@ function CreateTotemBarFrame()
 
 		btn:Show()
 
+		btn.cd = CreateFrame("Cooldown", "btn_cooldown", btn, "CooldownFrameTemplate")
+		btn.cd:SetAllPoints()
+		btn.cd:SetDrawEdge(false)
+		btn.cd:Show()
+
+
 		local t = btn:CreateTexture(nil, "BACKGROUND")
-		-- local stored_name = Storage[v]["name"]
 		local stored_idx = Storage[v]["idx"]
 
 		t:SetTexture(tbl[v][stored_idx+1]["img"])
 		t:SetAllPoints(btn)
 		btn.texture = t
+
+		btn:SetAttribute("spell", Storage[v]["name"]);
 
 		local alpha = Storage[v]["enabled"] and 1.0 or 0.5
 		btn:SetAlpha(alpha)
@@ -574,27 +672,19 @@ function CreateTotemBarFrame()
 		btn:SetScript("OnMouseWheel", function(self, delta)
 			if combat == false then
 				el = v
-				-- print("   el", el)
 				local ub = table.getn(tbl[el])
-				-- Storage[el_idx] = Storage[el_idx] + delta
 				Storage[el]["idx"] = Storage[el]["idx"] + delta
-				-- Storage[el_idx] = math.fmod(Storage[el_idx] + ub, ub)
 				Storage[el]["idx"] = math.fmod(Storage[el]["idx"] + ub, ub)
-				-- idx = Storage[el_idx] + 1
 				idx = Storage[el]["idx"] + 1
-				-- sel_img = tbl[el][idx]["img"]
 				sel_img = tbl[el][idx]["img"]
-				-- sel_name = tbl[el][idx]["name"]
 				sel_name = tbl[el][idx]["name"]
 				sel_short = tbl[el][idx]["short"]
-				-- print("sel_name ", sel_name)
+
+				btn:SetAttribute("spell", sel_name);
 
 				t:SetTexture(sel_img)
-				-- sel_totems[i] = sel_name
-				-- Storage[el]["idx"] = 
 				Storage[el]["name"] = sel_name
 				Storage[el]["short"] = sel_short
-				-- btn.text:SetText(sel_name)
 				btn.text_name:SetText(sel_short)
 
 				SetMacro(macroName)
@@ -627,9 +717,6 @@ function CreateTotemBarFrame()
 		buttons[i] = btn;
 	end
 
-
-	-- f:SetPoint("CENTER",0,0);
-	-- f:SetPoint("CENTER",Storage["x"],Storage["y"]);
 	f:Show();
 	-- f:RegisterForDrag("MiddleButton");
 	-- f:SetMovable();
@@ -641,9 +728,22 @@ function CreateTotemBarFrame()
 end
 
 function SetMacro(name)
+	if combat then
+		print("LumpaTotem: Can't change macro during combat!")
+		return
+	end
 	_name, _, _, _ = GetMacroInfo(name)
 	
-	local body = "/startattack\n/castsequence reset=combat "
+	local body = ""
+	if Storage["startattack"] == 1 then
+		body = body .. "/startattack\n"
+	end
+
+	-- local body = "/startattack\n/castsequence "
+	body = body .. "/castsequence "
+	if Storage["reset"] ~= "" then
+		body = body .. "reset=" .. Storage["reset"] .. " "
+	end
 
 	for i,element in pairs(Storage["order"]) do
 		body = AddTotemToMacroString(body, element)
@@ -651,7 +751,9 @@ function SetMacro(name)
 
 	body = body:sub(1,-3) -- drop last ", "
 
-	-- body = body .. ", nil"
+	if Storage["endwithnil"] == 1 then
+		body = body .. ", nil"
+	end
 
 	if _name == nil then -- macro do not exist, create it
 		local macroId = CreateMacro(name, "INV_MISC_QUESTIONMARK", body, 1);
