@@ -9,15 +9,6 @@ local combat = false
 local rootFrame = nil;
 
 local buttons = {}
--- local btnMissing = nil;
-
--- local totemIndex_rev = {
--- 	fire = 1,
--- 	earth = 2,
--- 	water = 3,
--- 	air = 4
--- }
--- local  = {"fire", "earth", "water", "air"}
 
 local elements = {"fire", "earth", "water", "air"} -- do not change order
 local element_colors = {
@@ -26,12 +17,16 @@ local element_colors = {
 	water = {r=64/255, g=87/255, b=191/255},
 	air   = {r=149/255, g=64/255, b=191/255}
 }
+local pc = {
+	addon 		= "|cFF40bfbf",
+	helpOpt 	= "|cFFbfbf40",
+	slash		= "|cFF40bfbf",
+	cmd 		= "|cFFbfbf40",
+	value 		= "|cFFbf4040",
+	sep			= "|cFF40bfbf",
+}
 
 local dragging = nil
--- local dragStart_x = nil
--- local dragStart_y = nil
--- local dragRelative_x = nil
--- local dragRelative_y = nil
 
 local buffs = {
 	["Stoneskin"] = false,
@@ -52,102 +47,90 @@ local buffs = {
 
 local activeTotems = {
 	earth = {
-		-- name = "",
-		-- timeleft = 0,
-		btn = nil,
-		-- f_timeLeft = nil
+		btn = nil
 	},
 	fire = {
-		-- name = "",
-		-- timeleft = 0,
-		btn = nil,
-		-- f_timeLeft = nil
+		btn = nil
 	},
 	water = {
-		-- name = "",
-		-- timeleft = 0,
-		btn = nil,
-		-- f_timeLeft = nil
+		btn = nil
 	},
 	air = {
-		-- name = "",
-		-- timeleft = 0,
-		btn = nil,
-		-- f_timeLeft = nil
+		btn = nil
 	}
 }
-local revlookup = {
-	earth = {
-		["Earthbind Totem"] = 1,
-		["Stoneskin Totem"] = 2,
-		["Stoneclaw Totem"] = 3,
-		["Strength of Earth Totem"] = 4,
-		["Tremor Totem"] = 5,
-		["Earth Elemental Totem"] = 6
-	},
-	fire = {
-		["Searing Totem"] = 1,
-		["Fire Elemental Totem"] = 2,
-		["Fire Nova Totem"] = 3,
-		["Flametongue Totem"] = 4,
-		["Frost Resistance Totem"] = 5,
-		["Magma Totem"] = 6,
-		["Totem of Wrath"] = 7
-	},
-	water = {
-		["Healing Stream Totem"] = 1,
-		["Mana Spring Totem"] = 2,
-		["Poison Cleansing Totem"] = 3,
-		["Disease Cleansing Totem"] = 4,
-		["Mana Tide Totem"] = 5,
-		["Fire Resistance Totem"] = 6
-	},
-	air = {
-		["Grace of Air Totem"] = 1,
-		["Windfury Totem"] = 2,
-		["Grounding Totem"] = 3,
-		["Windwall Totem"] = 4,
-		["Sentry Totem"] = 5,
-		["Nature Resistance Totem"] = 6,
-		["Tranquil Air Totem"] = 7,
-		["Wrath of Air Totem"] = 8
-	}
-}
+-- local revlookup = {
+-- 	earth = {
+-- 		["Earthbind Totem"] = 1,
+-- 		["Stoneskin Totem"] = 2,
+-- 		["Stoneclaw Totem"] = 3,
+-- 		["Strength of Earth Totem"] = 4,
+-- 		["Tremor Totem"] = 5,
+-- 		["Earth Elemental Totem"] = 6
+-- 	},
+-- 	fire = {
+-- 		["Searing Totem"] = 1,
+-- 		["Fire Elemental Totem"] = 2,
+-- 		["Fire Nova Totem"] = 3,
+-- 		["Flametongue Totem"] = 4,
+-- 		["Frost Resistance Totem"] = 5,
+-- 		["Magma Totem"] = 6,
+-- 		["Totem of Wrath"] = 7
+-- 	},
+-- 	water = {
+-- 		["Healing Stream Totem"] = 1,
+-- 		["Mana Spring Totem"] = 2,
+-- 		["Poison Cleansing Totem"] = 3,
+-- 		["Disease Cleansing Totem"] = 4,
+-- 		["Mana Tide Totem"] = 5,
+-- 		["Fire Resistance Totem"] = 6
+-- 	},
+-- 	air = {
+-- 		["Grace of Air Totem"] = 1,
+-- 		["Windfury Totem"] = 2,
+-- 		["Grounding Totem"] = 3,
+-- 		["Windwall Totem"] = 4,
+-- 		["Sentry Totem"] = 5,
+-- 		["Nature Resistance Totem"] = 6,
+-- 		["Tranquil Air Totem"] = 7,
+-- 		["Wrath of Air Totem"] = 8
+-- 	}
+-- }
 local tbl = {
 	earth = {
 		{
 			name = "Earthbind Totem",
-			short = "earthbind",
+			short = "Earthbind",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\earth_earthbind.tga"
 		},
 		{
 			name = "Stoneskin Totem",
-			short = "stoneskin",
+			short = "Stoneskin",
 			buff = "Stoneskin",
 			img = "Interface\\Addons\\LumpaTotem\\img\\earth_stoneskin.tga"
 		},
 		{
 			name = "Stoneclaw Totem",
-			short = "stoneclaw",
+			short = "Stoneclaw",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\earth_stoneclaw.tga"
 		},
 		{
 			name = "Strength of Earth Totem",
-			short = "strength",
+			short = "Strength",
 			buff = "Strength of Earth",
 			img = "Interface\\Addons\\LumpaTotem\\img\\earth_strengthofearth.tga"
 		},
 		{
 			name = "Tremor Totem",
-			short = "tremor",
+			short = "Tremor",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\earth_tremor.tga"
 		},
 		{
 			name = "Earth Elemental Totem",
-			short = "earth el",
+			short = "EarthEl",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\earth_earthelemental.tga"
 		}
@@ -155,37 +138,37 @@ local tbl = {
 	fire = {
 		{
 			name = "Searing Totem",
-			short = "searing",
+			short = "Searing",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_searing.tga"
 		},
 		{
 			name = "Fire Elemental Totem",
-			short = "fire el",
+			short = "FireEl",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_fireelemental.tga"
 		},
 		{
 			name = "Fire Nova Totem",
-			short = "nova",
+			short = "Nova",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_firenova.tga"
 		},
 		{
 			name = "Flametongue Totem",
-			short = "flame",
+			short = "Flame",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_flametongue.tga"
 		},
 		{
 			name = "Frost Resistance Totem",
-			short = "frost res",
+			short = "FrostRes",
 			buff = "Frost Resistance",
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_frostres.tga"
 		},
 		{
 			name = "Magma Totem",
-			short = "magma",
+			short = "Magma",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_magma.tga"
 		},
@@ -199,37 +182,37 @@ local tbl = {
 	water = {
 		{
 			name = "Healing Stream Totem",
-			short = "healing",
+			short = "Healing",
 			buff = "Healing Stream",
 			img = "Interface\\Addons\\LumpaTotem\\img\\water_healingstream.tga"
 		},
 		{
 			name = "Mana Spring Totem",
-			short = "spring",
+			short = "Spring",
 			buff = "Mana Spring",
 			img = "Interface\\Addons\\LumpaTotem\\img\\water_manaspring.tga"
 		},
 		{
 			name = "Poison Cleansing Totem",
-			short = "poison",
+			short = "Poison",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\water_poison.tga"
 		},
 		{
 			name = "Disease Cleansing Totem",
-			short = "disease",
+			short = "Disease",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\water_disease.tga"
 		},
 		{
 			name = "Mana Tide Totem",
-			short = "tide",
+			short = "Tide",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\water_manatide.tga"
 		},
 		{
 			name = "Fire Resistance Totem",
-			short = "fire res",
+			short = "FireRes",
 			buff = "Fire Resistance",
 			img = "Interface\\Addons\\LumpaTotem\\img\\water_fireres.tga"
 		}
@@ -237,43 +220,43 @@ local tbl = {
 	air = {
 		{
 			name = "Grace of Air Totem",
-			short = "grace",
+			short = "Grace",
 			buff = "Grace of Air",
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_grace.tga"
 		},
 		{
 			name = "Windfury Totem",
-			short = "wf",
+			short = "WF",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_windfury.tga"
 		},
 		{
 			name = "Grounding Totem",
-			short = "grounding",
+			short = "Grounding",
 			buff = "Grounding Totem Effect",
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_grounding.tga"
 		},
 		{
 			name = "Windwall Totem",
-			short = "windwall",
+			short = "Windwall",
 			buff = "Windwall",
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_windwall.tga"
 		},
 		{
 			name = "Sentry Totem",
-			short = "sentry",
+			short = "Sentry",
 			buff = "Sentry Totem",
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_sentry.tga"
 		},
 		{
 			name = "Nature Resistance Totem",
-			short = "nat res",
+			short = "NatRes",
 			buff = "Nature Resistance",
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_natureres.tga"
 		},
 		{
 			name = "Tranquil Air Totem",
-			short = "tranquil",
+			short = "Tranquil",
 			buff = nil,
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_tranquil.tga"
 		},
@@ -285,64 +268,232 @@ local tbl = {
 		}
 	}
 }
--- local earth_index = 0
 
-SLASH_LUMPATOTEM1 = "/lumpatotem"
+function CreateReverseLookup_shorts() 
+	rlShorts = {}
+	for el, el_x in pairs(tbl) do
+		for t, t_x in pairs(el_x) do
+			rlShorts[string.lower(t_x["short"])] = t_x["name"]
+		end
+	end
+	return rlShorts
+end
+local revLookup_shorts = CreateReverseLookup_shorts(); -- ex: ask for "earthbind", return "Earthbind Totem"
+
+
+function CreateReverseLookup_totemIds()
+	rlTotemids = {}
+	for el, el_x in pairs(tbl) do
+		rlTotemids[el] = {}
+		for i, t_x in ipairs(el_x) do
+			rlTotemids[el][t_x["name"]] = i
+		end
+	end
+	return rlTotemids	
+end
+local revLookup_totemIds = CreateReverseLookup_totemIds() -- ex: ask for ["earth"]["Tremor Totem"], return 5
+
+
+function ShortsStringWithSeparatorsColored()
+	local out = ""
+	for k,v in pairs(revLookup_shorts) do
+		out = out .. pc["cmd"] .. k .. "|r" .. pc["sep"] .. "|||r"
+	end
+	out = out:sub(1,-5)
+	out = out .. "|r"
+	return out
+end
+
+local cmd_help = {
+	anchor = {
+		help = "anchor point of root frame",
+		format_cmd = "anchor",
+		format_val = 
+			pc["value"].."CENTER"..pc["sep"].."||"..
+			pc["value"].."BOTTOMLEFT"..pc["sep"].."||"..
+			pc["value"].."TOPLEFT"..pc["sep"].."||".. 
+			pc["value"].."BOTTOMRIGHT"..pc["sep"].."||"..
+			pc["value"].."TOPRIGHT|r",
+		ex_cmd = "anchor",
+		ex_val = "CENTER"
+	},
+	x = {
+		help = "x coordinate of root frame",
+		format_cmd = "x",
+		format_val = "<any number>",
+		ex_cmd = "x",
+		ex_val = "200"
+	},
+	y = {
+		help = "y coordinate of root frame",
+		format_cmd = "y",
+		format_val = "<any number>",
+		ex_cmd = "y",
+		ex_val = "-300"
+	},
+	reset = {
+		help = "reset value of castsequence",
+		format_cmd = "reset",
+		format_val = "<any string without spaces>",
+		ex_cmd = "reset",
+		ex_val = "combat/10"
+	},
+	endwithnil = {
+		help = "end castsequence with nil",
+		format_cmd = "endwithnil",
+		format_val = pc["value"] .. "0" .. pc["sep"] .."||" .. pc["value"] .. "1|r",
+		ex_cmd = "endwithnil",
+		ex_val = "1"
+	},
+	startattack = {
+		help = "include startattack in macro",
+		format_cmd = "startattack",
+		format_val = pc["value"] .. "0" .. pc["sep"] .."||" .. pc["value"] .. "1|r",
+		ex_cmd = "startattack",
+		ex_val = "1"
+	},
+	included = {
+		help = "Which totems that can be scrolled through",
+		-- format = "searing|magma|ground 0|1",
+		format_cmd = ShortsStringWithSeparatorsColored(),
+		format_val = pc["value"] .. "0" .. pc["sep"] .. "||" .. pc["value"] .. "1|r",
+		ex_cmd = "searing",
+		ex_val = "0"
+	}
+}
+function PrintFormats()
+	
+end
+function PrintHelp(help_key, stored_key)
+	-- stored_key = stored_key and stored_key or help_key -- if stored_key is nil, set it to help_key instead
+	if cmd_help[help_key] ~= nil then
+		print()
+		print(
+			pc["addon"] .. "LumpaTotem|r " .. 
+			pc["helpOpt"] .. "FORMAT|r:    " .. 
+			pc["slash"] .. "/lt " ..
+			pc["cmd"] .. cmd_help[help_key]["format_cmd"] .. "|r " .. 
+			pc["value"] .. cmd_help[help_key]["format_val"] .. "|r"
+		)
+		print(
+			pc["addon"] .. "LumpaTotem|r " .. 
+			pc["helpOpt"] .. "EXAMPLE|r:   " .. 
+			pc["slash"] .. "/lt " ..
+			pc["cmd"] .. cmd_help[help_key]["ex_cmd"] .. " |r" .. 
+			pc["value"] .. cmd_help[help_key]["ex_val"] .. "|r"
+		)
+		print(
+			pc["addon"] .. "LumpaTotem|r " .. 
+			pc["helpOpt"] .. "CURRENT|r:    " .. 
+			pc["slash"] .. "/lt " ..
+			pc["cmd"] .. stored_key .. "|r " .. 
+			pc["value"] .. Storage[stored_key] .. "|r"
+		)
+		print()
+	end
+end
+function PrintSet(key, value)
+	print()
+	print(
+		pc["addon"] .. "LumpaTotem|r " .. 
+		pc["helpOpt"] .. "SET|r:    " ..
+		pc["slash"] .. "/lt|r " ..
+		pc["cmd"] .. key .. "|r " .. 
+		pc["value"] .. value .. "|r"
+	)
+	print()
+end
+
+
+
+
+SLASH_LUMPATOTEM1 = "/lt"
 SlashCmdList["LUMPATOTEM"] = function(msg)
 	argv = {}
 	for arg in string.gmatch(string.lower(msg), '[%a%d%-%.%/]+') do
 		table.insert(argv, arg);
 	end
 
+	-- print("/lt", table.concat(argv, " "))
+	-- if cmd_help[argv[1]] ~= nil and argv[2] == nil then -- valid argv1 but no argv2
+	-- 	PrintHelp(argv[1])
+	-- 	return
+	-- end
+
+	-- local current = 
+	-- 	pc["addon"] .. "LumpaTotem|r " .. 
+	-- 	pc["helpOpt"] .. "CURRENT     |r " .. 
+	-- 	pc["cmd"] .. "/lt " .. argv[1] .. " " .. 
+	-- 	pc["value"] .. " ";
+
 	if argv[1] == "x" then
-		if table.getn(argv) >= 2 then
+		-- if table.getn(argv) >= 2 then
+		if argv[2] ~= nil then
 			Storage["x"] = tonumber(argv[2]);
 			MoveRootFrame();
+			PrintSet(argv[1], argv[2]);
+		else 
+			PrintHelp(argv[1], argv[1]);
 		end
-		print("LumpaTotem rootFrame x:", Storage["x"])
 
 	elseif argv[1] == "y" then
-		if table.getn(argv) >= 2 then
+		if argv[2] ~= nil then
 			Storage["y"] = tonumber(argv[2]);
 			MoveRootFrame();
-		end
-		print("LumpaTotem rootFrame y:", Storage["y"])
+			PrintSet(argv[1], argv[2]);
+		else PrintHelp(argv[1], argv[1]); end
 
 	elseif argv[1] == "reset" then
-		if table.getn(argv) >= 2 then
+		if argv[2] ~= nil then
 			Storage["reset"] = argv[2];
 			SetMacro(macroName)
+			PrintSet(argv[1], argv[2]);
+		else
+			PrintHelp(argv[1], argv[1]);
 		end
-		print("LumpaTotem reset (for castsequence):", Storage["reset"]);
 
 	elseif argv[1] == "endwithnil" then
-		if table.getn(argv) >= 2 then
+		if argv[2] ~= nil then
 			Storage["endwithnil"] = tonumber(argv[2])
 			SetMacro(macroName)
+			PrintSet(argv[1], argv[2]);
+		else
+			PrintHelp(argv[1], argv[1]);
 		end
-		print("LumpaTotem castsequence ending with nil:", Storage["endwithnil"]);
 
 	elseif argv[1] == "anchor" then
-		if table.getn(argv) >= 2 then
+		if argv[2] ~= nil then
 			Storage["anchor"] = argv[2]
 			MoveRootFrame()
+			PrintSet(argv[1], argv[2]);
+		else
+			PrintHelp(argv[1], argv[1]);
 		end
-		print("LumpaTotem anchor:", Storage["anchor"]);
 
 	elseif argv[1] == "startattack" then
-		if table.getn(argv) >= 2 then
+		if argv[2] ~= nil then
 			Storage["startattack"] = tonumber(argv[2])
 			SetMacro(macroName)
+			PrintSet(argv[1], argv[2]);
+		else
+			PrintHelp(argv[1], argv[1]);
 		end
-		print("LumpaTotem startattack:", Storage["startattack"]);
+
+	elseif revLookup_shorts[argv[1]] ~= nil then
+		local short = string.lower(argv[1])
+		local b = argv[2]
+		if b ~= nil then
+			b = tonumber(b);
+			Storage[short] = b;
+			PrintSet(short, b);
+		else
+			PrintHelp("included", short)
+		end
 
 	else
-		print("/lumpatotem x")
-		print("/lumpatotem y")
-		print("/lumpatotem reset")
-		print("/lumpatotem endwithnil TRUE|FALSE")
-		print("/lumpatotem anchor CENTER|BOTTOMLEFT|TOPLEFT|BOTTOMRIGHT|TOPRIGHT")
-		print("/lumpatotem startattack TRUE|FALSE")
+		for k,v in pairs(cmd_help) do
+			print("/lt", k, "   ", cmd_help[k]["help"])
+		end
 	end
 end
 
@@ -434,6 +585,8 @@ end
 
 function LumpaTotem:OnInitialize()
 	print("init");
+
+	-- CreateReverseLookupShorts();
 	
 	addon.core = {};
 	addon.core.frame = CreateFrame("Frame");
@@ -478,10 +631,15 @@ function LumpaTotem:OnInitialize()
 		-- 	anchor = "CENTER"
 		-- }
 	end
-	if (Storage["earth"] == nil) then 		Storage["earth"] = 			{idx = 0, name = "", short = "", enabled = true} end
-	if (Storage["fire"] == nil) then 		Storage["fire"] = 			{idx = 0, name = "", short = "", enabled = true} end
-	if (Storage["water"] == nil) then 		Storage["water"] = 			{idx = 0, name = "", short = "", enabled = true} end
-	if (Storage["air"] == nil) then			Storage["air"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	if (Storage["earth"] == nil) then 		Storage["earth"] = 			{idx = 0, name = tbl["earth"][1]["name"], short = tbl["earth"][1]["short"], enabled = true} end
+	if (Storage["fire"] == nil) then 		Storage["fire"] = 			{idx = 0, name = tbl["fire"][1]["name"], short = tbl["fire"][1]["short"], enabled = true} end
+	if (Storage["water"] == nil) then 		Storage["water"] = 			{idx = 0, name = tbl["water"][1]["name"], short = tbl["water"][1]["short"], enabled = true} end
+	if (Storage["air"] == nil) then			Storage["air"] = 			{idx = 0, name = tbl["air"][1]["name"], short = tbl["air"][1]["short"], enabled = true} end
+	-- if (Storage["earth"] == nil) then 		Storage["earth"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	-- if (Storage["fire"] == nil) then 		Storage["fire"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	-- if (Storage["water"] == nil) then 		Storage["water"] = 			{idx = 0, name = "", short = "", enabled = true} end
+	-- if (Storage["air"] == nil) then			Storage["air"] = 			{idx = 0, name = "", short = "", enabled = true} end
+
 	if (Storage["order"] == nil) then 		Storage["order"] = 			{"air", "earth", "fire", "water"} end
 	if (Storage["startattack"] == nil) then Storage["startattack"] = 	1 end
 	if (Storage["endwithnil"] == nil) then 	Storage["endwithnil"] = 	1 end
@@ -489,6 +647,12 @@ function LumpaTotem:OnInitialize()
 	if (Storage["reset"] == nil) then 		Storage["reset"] = 			"combat/10" end
 	if (Storage["x"] == nil) then 			Storage["x"] = 				0 end
 	if (Storage["y"] == nil) then 			Storage["y"] =				0 end
+	-- if (Storage["included"] == nil) then	Storage["included"] = 		{} end
+
+	for k,v in pairs(revLookup_shorts) do
+		-- if (Storage["included"][k] == nil) then Storage["included"][k] = 1 end
+		if (Storage[k] == nil) then Storage[k] = 1 end
+	end
 	CreateTotemBarFrame()
 	LumpaTotem_Loop()
 end
@@ -544,7 +708,8 @@ function LumpaTotem_LoopTick()
 
 		totemName = TrimTotemString(totemName)
 		if totemName ~= "" then
-			local id = revlookup[el][totemName]
+			-- local id = revlookup[el][totemName]
+			local id = revLookup_totemIds[el][totemName]
 			auraName = tbl[el][id]["buff"]
 			if timeLeft > 0 then -- if totem is alive
 				-- placedElements[el] = true
@@ -562,24 +727,6 @@ function LumpaTotem_LoopTick()
 			end
 		end
 	end
-
-	-- local firstUnplaced = nil
-	-- -- print()
-	-- for element,b in pairs(placedElements) do
-	-- 	-- print(element,b)
-	-- 	if b == false then
-	-- 		firstUnplaced = element
-	-- 		break
-	-- 	end
-	-- end
-
-	-- if firstUnplaced ~= nil then
-	-- 	-- print("firstUnplaced", firstUnplaced)
-	-- 	-- btnMissing:SetAttribute("spell", Storage[firstUnplaced]["name"])
-	-- 	-- buttons[1]:Click("LeftButton")
-	-- else
-	-- 	-- btnMissing:SetAttribute("spell", nil)
-	-- end
 end
 
 
@@ -593,19 +740,6 @@ function CreateTotemBarFrame()
 	f:SetFrameStrata("BACKGROUND")
 	f:SetWidth(256)
 	f:SetHeight(64)
-
-	-- btnMissing = CreateFrame("Button", "MyButtonName", UIParent, "SecureActionButtonTemplate")
-	-- SetOverrideBindingClick(btnMissing, true, "1", "MyButtonName")
-	-- btnMissing:SetWidth(64)
-	-- btnMissing:SetHeight(64)
-	-- btnMissing:SetPoint("CENTER", -100, -100)
-	-- btnMissing:SetBackdrop({
-	-- 	edgeFile = [[Interface\Buttons\WHITE8x8]],
-	-- 	edgeSize = 5,
-	-- })
-	-- btnMissing:SetBackdropBorderColor(1,1,1)
-	-- btnMissing:SetAttribute("type", "spell");
-
 
 	-- f:SetBackdrop({
 	-- 	edgeFile = [[Interface\Buttons\WHITE8x8]],
@@ -673,12 +807,28 @@ function CreateTotemBarFrame()
 			if combat == false then
 				el = v
 				local ub = table.getn(tbl[el])
-				Storage[el]["idx"] = Storage[el]["idx"] + delta
-				Storage[el]["idx"] = math.fmod(Storage[el]["idx"] + ub, ub)
-				idx = Storage[el]["idx"] + 1
-				sel_img = tbl[el][idx]["img"]
-				sel_name = tbl[el][idx]["name"]
-				sel_short = tbl[el][idx]["short"]
+				local idx = nil;
+				local sel_img = nil;
+				local sel_name = nil;
+				local sel_short = nil;
+				local temp_idx = Storage[el]["idx"]
+
+				local count = 0
+
+				repeat
+					count = count + 1
+					temp_idx = temp_idx + delta
+					temp_idx = math.fmod(temp_idx + ub, ub)
+				until (Storage[string.lower(tbl[el][temp_idx+1]["short"])] == 1 or count > 10)
+				if count > ub then -- inf loop detected!
+					Storage[el]["idx"] = math.fmod(Storage[el]["idx"] + delta + ub, ub)
+				else
+					Storage[el]["idx"] = math.fmod(temp_idx + ub, ub)
+				end
+
+				sel_img = tbl[el][Storage[el]["idx"]+1]["img"]
+				sel_name = tbl[el][Storage[el]["idx"]+1]["name"]
+				sel_short = string.lower(tbl[el][Storage[el]["idx"]+1]["short"])
 
 				btn:SetAttribute("spell", sel_name);
 
@@ -718,10 +868,6 @@ function CreateTotemBarFrame()
 	end
 
 	f:Show();
-	-- f:RegisterForDrag("MiddleButton");
-	-- f:SetMovable();
-	-- f:SetScript("OnDragStop", f.StopMovingOrSizing)
-	-- f:SetScript("OnDragStart", f.StartMoving)
 	rootFrame = f;
 	MoveRootFrame();
 	RedrawButtonLocations();
@@ -739,7 +885,6 @@ function SetMacro(name)
 		body = body .. "/startattack\n"
 	end
 
-	-- local body = "/startattack\n/castsequence "
 	body = body .. "/castsequence "
 	if Storage["reset"] ~= "" then
 		body = body .. "reset=" .. Storage["reset"] .. " "
