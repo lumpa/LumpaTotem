@@ -7,19 +7,25 @@ local sel_totems = {}
 local combat = false
 
 local rootFrame = nil;
+local iconWidth = 64;
+local iconHeight = 64;
+local iconFont = "Fonts\\ARIALN.ttf";
 
 local buttons = {}
 
 local elements = {"fire", "earth", "water", "air"} -- do not change order
 local element_colors = {
 	fire  = {r=191/255, g=64/255, b=64/255},
-	earth = {r=191/255, g=110/255, b=64/255},
-	water = {r=64/255, g=87/255, b=191/255},
-	air   = {r=149/255, g=64/255, b=191/255}
+	earth = {r=191/255, g=128/255, b=64/255},
+	water = {r=64/255, g=128/255, b=191/255},
+	air   = {r=128/255, g=64/255, b=191/255}
 }
 local pc = {
 	addon 		= "|cFF40bfbf",
 	helpOpt 	= "|cFFbfbf40",
+	opt_format 	= "|cFF80bf40",
+	opt_ex	 	= "|cFF4080bf",
+	opt_set	 	= "|cFFbf40bf",
 	slash		= "|cFF40bfbf",
 	cmd 		= "|cFFbfbf40",
 	value 		= "|cFFbf4040",
@@ -334,7 +340,7 @@ local cmd_help = {
 	reset = {
 		help = "reset value of castsequence",
 		format_cmd = "reset",
-		format_val = "<any string without spaces>",
+		format_val = "<any reset string without spaces>",
 		ex_cmd = "reset",
 		ex_val = "combat/10"
 	},
@@ -352,6 +358,20 @@ local cmd_help = {
 		ex_cmd = "startattack",
 		ex_val = "1"
 	},
+	scale = {
+		help = "scale of root frame",
+		format_cmd = "scale",
+		format_val = "<any number>",
+		ex_cmd = "scale",
+		ex_val = "1.25"
+	},
+	examples = {
+		help = "show list of examples",
+		format_cmd = "examples",
+		format_val = "",
+		ex_cmd = "examples",
+		ex_val = ""
+	},
 	included = {
 		help = "Which totems that can be scrolled through",
 		-- format = "searing|magma|ground 0|1",
@@ -362,9 +382,46 @@ local cmd_help = {
 	}
 }
 function PrintFormats()
-	
+	for help_key,v in pairs(cmd_help) do
+		print(
+			pc["addon"] .. "LumpaTotem|r " .. 
+			pc["opt_format"] .. "FORMAT|r:    " .. 
+			pc["slash"] .. "/lt " ..
+			pc["cmd"] .. cmd_help[help_key]["format_cmd"] .. "|r " .. 
+			pc["value"] .. cmd_help[help_key]["format_val"] .. "|r"
+		)
+	end
 end
-function PrintHelp(help_key, stored_key)
+function PrintExamples()
+	for help_key,v in pairs(cmd_help) do
+		print(
+			pc["addon"] .. "LumpaTotem|r " .. 
+			pc["opt_ex"] .. "EXAMPLE|r:    " .. 
+			pc["slash"] .. "/lt " ..
+			pc["cmd"] .. cmd_help[help_key]["ex_cmd"] .. "|r " .. 
+			pc["value"] .. cmd_help[help_key]["ex_val"] .. "|r"
+		)
+	end
+end
+function PrintSet(key, value)
+	print(
+		pc["addon"] .. "LumpaTotem|r " .. 
+		pc["opt_set"] .. "SET|r:    " ..
+		pc["slash"] .. "/lt|r " ..
+		pc["cmd"] .. key .. "|r " .. 
+		pc["value"] .. value .. "|r"
+	)
+end
+function PrintGet(key)
+	print(
+		pc["addon"] .. "LumpaTotem|r " .. 
+		pc["opt_set"] .. "CURRENT|r:    " ..
+		pc["slash"] .. "/lt|r " ..
+		pc["cmd"] .. key .. "|r " .. 
+		pc["value"] .. Storage[key] .. "|r"
+	)
+end
+function PrintHelp(help_key, stored_key) -- obsolete
 	-- stored_key = stored_key and stored_key or help_key -- if stored_key is nil, set it to help_key instead
 	if cmd_help[help_key] ~= nil then
 		print()
@@ -391,17 +448,6 @@ function PrintHelp(help_key, stored_key)
 		)
 		print()
 	end
-end
-function PrintSet(key, value)
-	print()
-	print(
-		pc["addon"] .. "LumpaTotem|r " .. 
-		pc["helpOpt"] .. "SET|r:    " ..
-		pc["slash"] .. "/lt|r " ..
-		pc["cmd"] .. key .. "|r " .. 
-		pc["value"] .. value .. "|r"
-	)
-	print()
 end
 
 
@@ -433,7 +479,8 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			MoveRootFrame();
 			PrintSet(argv[1], argv[2]);
 		else 
-			PrintHelp(argv[1], argv[1]);
+			-- PrintHelp(argv[1], argv[1]);
+			PrintGet(argv[1]);
 		end
 
 	elseif argv[1] == "y" then
@@ -441,7 +488,7 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			Storage["y"] = tonumber(argv[2]);
 			MoveRootFrame();
 			PrintSet(argv[1], argv[2]);
-		else PrintHelp(argv[1], argv[1]); end
+		else PrintGet(argv[1]); end
 
 	elseif argv[1] == "reset" then
 		if argv[2] ~= nil then
@@ -449,7 +496,7 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			SetMacro(macroName)
 			PrintSet(argv[1], argv[2]);
 		else
-			PrintHelp(argv[1], argv[1]);
+			PrintGet(argv[1]);
 		end
 
 	elseif argv[1] == "endwithnil" then
@@ -458,7 +505,7 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			SetMacro(macroName)
 			PrintSet(argv[1], argv[2]);
 		else
-			PrintHelp(argv[1], argv[1]);
+			PrintGet(argv[1]);
 		end
 
 	elseif argv[1] == "anchor" then
@@ -467,7 +514,7 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			MoveRootFrame()
 			PrintSet(argv[1], argv[2]);
 		else
-			PrintHelp(argv[1], argv[1]);
+			PrintGet(argv[1]);
 		end
 
 	elseif argv[1] == "startattack" then
@@ -476,8 +523,20 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			SetMacro(macroName)
 			PrintSet(argv[1], argv[2]);
 		else
-			PrintHelp(argv[1], argv[1]);
+			PrintGet(argv[1]);
 		end
+
+	elseif argv[1] == "scale" then
+		if argv[2] ~= nil then
+			Storage["scale"] = tonumber(argv[2])
+			ResizeFrames();
+			PrintSet(argv[1], argv[2]);
+		else
+			PrintGet(argv[1]);
+		end
+
+	elseif argv[1] == "examples" then
+		PrintExamples();
 
 	elseif revLookup_shorts[argv[1]] ~= nil then
 		local short = string.lower(argv[1])
@@ -491,14 +550,44 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 		end
 
 	else
-		for k,v in pairs(cmd_help) do
-			print("/lt", k, "   ", cmd_help[k]["help"])
-		end
+		-- for k,v in pairs(cmd_help) do
+		-- 	print("/lt", k, "   ", cmd_help[k]["help"])
+		-- end
+		PrintFormats();
 	end
+end
+
+function ResizeFrames()
+	local scale = Storage["scale"]
+	rootFrame:SetWidth(iconWidth*scale*4)
+	rootFrame:SetHeight(iconWidth*scale)
+
+	for i,v in ipairs(Storage["order"]) do
+		local btn = buttons[i]
+		btn:SetWidth(iconWidth * scale)
+		btn:SetHeight(iconHeight * scale)
+		btn:SetBackdrop({
+			edgeFile = [[Interface\Buttons\WHITE8x8]],
+			edgeSize = 5 * scale,
+		})
+		c = element_colors[v]
+		btn:SetBackdropBorderColor(c.r, c.g, c.b)
+
+		btn.text_name:SetWidth(iconWidth * scale)
+		btn.text_name:SetFont(iconFont, 13 * scale, "OUTLINE")
+		btn.text_name:SetPoint("BOTTOMLEFT", 0, 5 * scale)
+
+		btn.text_timeLeft:SetWidth(iconWidth * scale)
+		btn.text_timeLeft:SetHeight(iconHeight * scale)
+		btn.text_timeLeft:SetFont(iconFont, 25 * scale, "OUTLINE")
+	end
+
+	RedrawButtonLocations()
 end
 
 function MoveRootFrame()
 	-- print("Moving root frame to", Storage["anchor"], Storage["x"], Storage["y"])
+	-- rootFrame:SetScale(Storage["scale"])
 	rootFrame:ClearAllPoints();
 	rootFrame:SetPoint(Storage["anchor"], UIParent, Storage["x"], Storage["y"])
 end
@@ -529,7 +618,8 @@ function DraggingLoop()
 	local x, y = GetCursorPosition();
 	local left = rootFrame:GetLeft()
 	local relX = x/scale - left
-	local overBin = math.max(math.min(math.floor(relX/64),3),0) + 1
+	-- local overBin = math.max(math.min(math.floor(relX/64),3),0) + 1
+	local overBin = math.max(math.min(math.floor(relX/(iconWidth*Storage["scale"])),3),0) + 1
 	local currentBin = dragging.btnSlot
 
 	if overBin ~= currentBin then
@@ -552,7 +642,8 @@ function RedrawButtonLocations()
 	for i=1,4 do
 		btn = buttons[i];
 		btn.btnSlot = i;
-		btn:SetPoint("BOTTOMLEFT", rootFrame, "BOTTOMLEFT", 64*(i-1), 0)
+		-- btn:SetPoint("BOTTOMLEFT", rootFrame, "BOTTOMLEFT", 64*(i-1), 0)
+		btn:SetPoint("BOTTOMLEFT", rootFrame, "BOTTOMLEFT", (iconWidth*Storage["scale"])*(i-1), 0)
 	end
 end
 
@@ -647,6 +738,7 @@ function LumpaTotem:OnInitialize()
 	if (Storage["reset"] == nil) then 		Storage["reset"] = 			"combat/10" end
 	if (Storage["x"] == nil) then 			Storage["x"] = 				0 end
 	if (Storage["y"] == nil) then 			Storage["y"] =				0 end
+	if (Storage["scale"] == nil) then 		Storage["scale"] =			1 end
 	-- if (Storage["included"] == nil) then	Storage["included"] = 		{} end
 
 	for k,v in pairs(revLookup_shorts) do
@@ -698,7 +790,9 @@ function LumpaTotem_LoopTick()
 			btn.text_timeLeft:SetText(timeLeft)
 		end
 
-		local start, duration = GetSpellCooldown(Storage[el]["name"])
+		local totemName = Storage[el]["name"]
+		local start, duration = GetSpellCooldown(totemName)
+		local usable, oom = IsUsableSpell(totemName)
 		-- print(Storage[el]["name"], start, duration)
 		if start ~= nil and duration ~= nil then
 			btn.cd:SetCooldown(start, duration)
@@ -708,22 +802,41 @@ function LumpaTotem_LoopTick()
 
 		totemName = TrimTotemString(totemName)
 		if totemName ~= "" then
-			-- local id = revlookup[el][totemName]
 			local id = revLookup_totemIds[el][totemName]
 			auraName = tbl[el][id]["buff"]
-			if timeLeft > 0 then -- if totem is alive
-				-- placedElements[el] = true
-				if auraName ~= nil then -- only if totem has aura
-					if buffs[auraName] == true then
-						btn.texture:SetVertexColor(0,1,0)
-					else
-						btn.texture:SetVertexColor(1,0,0)
+
+			-- local c_act = {r=38/255, g=217/255, b=38/255}
+			-- local c_oom = {r=38/255, g=38/255, b=38/255}
+			-- local c_oor = {r=217/255, g=38/255, b=38/255}
+			-- local c_non = {r=1, g=1, b=1}
+
+			local c_act = {r=0/255, g=255/255, b=0/255}
+			-- local c_actm= {r=32/255, g=96/255, b=32/255}
+			local c_oom = {r=64/255, g=64/255, b=64/255}
+			local c_oor = {r=255/255, g=0/255, b=0/255}
+			local c_oomr= {r=96/255, g=32/255, b=32/255}
+			local c_non = {r=1, g=1, b=1}
+
+			if timeLeft > 0 then -- totem is alive
+				if auraName ~= nil then -- totem has aura
+					if buffs[auraName] == true then -- aura reaching me
+						btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+					else -- aura not reaching me
+						if oom==true then
+							btn.texture:SetVertexColor(c_oomr.r, c_oomr.g, c_oomr.b)
+						else
+							btn.texture:SetVertexColor(c_oor.r, c_oor.g, c_oor.b)
+						end
 					end
 				else -- totem is alive, but has no aura
-					btn.texture:SetVertexColor(0,1,0)
+					btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
 				end
 			else -- totem is dead
-				btn.texture:SetVertexColor(1,1,1)
+				if oom==true then
+					btn.texture:SetVertexColor(c_oom.r, c_oom.g, c_oom.b)
+				else
+					btn.texture:SetVertexColor(c_non.r, c_non.g, c_non.b)
+				end
 			end
 		end
 	end
@@ -751,15 +864,15 @@ function CreateTotemBarFrame()
 		local btn = CreateFrame("Button", f, UIParent, "SecureActionButtonTemplate")
 		btn:SetAttribute("type", "spell"); -- Unmodified left click.
 
-		btn:SetWidth(64)
-		btn:SetHeight(64)
+		-- btn:SetWidth(64)
+		-- btn:SetHeight(64)
 
-		btn:SetBackdrop({
-			edgeFile = [[Interface\Buttons\WHITE8x8]],
-			edgeSize = 5,
-		})
-		c = element_colors[v]
-		btn:SetBackdropBorderColor(c.r, c.g, c.b)
+		-- btn:SetBackdrop({
+		-- 	edgeFile = [[Interface\Buttons\WHITE8x8]],
+		-- 	edgeSize = 5,
+		-- })
+		-- c = element_colors[v]
+		-- btn:SetBackdropBorderColor(c.r, c.g, c.b)
 
 		btn:RegisterForDrag("LeftButton");
 		btn:SetScript("OnDragStart", onDragStart);
@@ -771,17 +884,17 @@ function CreateTotemBarFrame()
 		activeTotems[v]["btn"] = btn
 		
 		btn.text_name = btn:CreateFontString(nil, "ARTWORK")
-		btn.text_name:SetFont("Fonts\\ARIALN.ttf", 13, "OUTLINE")
-		btn.text_name:SetPoint("BOTTOMLEFT", 0, 5)
-		btn.text_name:SetWidth(64)
+		btn.text_name:SetFont(iconFont, 13, "OUTLINE")
+		-- btn.text_name:SetPoint("BOTTOMLEFT", 0, 5)
+		-- btn.text_name:SetWidth(64)
 		local short = Storage[v]["short"]
 		btn.text_name:SetText(short)
 
 		btn.text_timeLeft = btn:CreateFontString(nil, "ARTWORK")
-		btn.text_timeLeft:SetFont("Fonts\\ARIALN.ttf", 25, "OUTLINE")
+		btn.text_timeLeft:SetFont(iconFont, 25, "OUTLINE")
 		btn.text_timeLeft:SetPoint("CENTER", 0, 0)
-		btn.text_timeLeft:SetWidth(64)
-		btn.text_timeLeft:SetHeight(64)
+		-- btn.text_timeLeft:SetWidth(64)
+		-- btn.text_timeLeft:SetHeight(64)
 
 		btn:Show()
 
@@ -866,9 +979,9 @@ function CreateTotemBarFrame()
 		-- end)
 		buttons[i] = btn;
 	end
-
 	f:Show();
 	rootFrame = f;
+	ResizeFrames()
 	MoveRootFrame();
 	RedrawButtonLocations();
 end
@@ -889,6 +1002,8 @@ function SetMacro(name)
 	if Storage["reset"] ~= "" then
 		body = body .. "reset=" .. Storage["reset"] .. " "
 	end
+
+	-- body = body .. "Stormstrike, "
 
 	for i,element in pairs(Storage["order"]) do
 		body = AddTotemToMacroString(body, element)
