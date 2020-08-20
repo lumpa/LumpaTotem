@@ -12,17 +12,26 @@ local iconHeight = 64;
 local iconFont = "Fonts\\ARIALN.ttf";
 
 local buttons = {}
+local miniScale = 0.5
 
 local elements = {"fire", "earth", "water", "air"} -- do not change order
 local element_colors = {
 	fire  = {r=191/255, g=64/255, b=64/255},
-	earth = {r=191/255, g=128/255, b=64/255},
+	earth = {r=128/255, g=191/255, b=64/255},
 	water = {r=64/255, g=128/255, b=191/255},
 	air   = {r=128/255, g=64/255, b=191/255}
 }
+
+local c_act = {r=0/255, g=255/255, b=0/255}
+local c_actm= {r=32/255, g=96/255, b=32/255}
+local c_oom = {r=64/255, g=64/255, b=64/255}
+local c_oor = {r=255/255, g=0/255, b=0/255}
+local c_oomr= {r=96/255, g=32/255, b=32/255}
+local c_non = {r=1, g=1, b=1}
+
 local pc = {
 	addon 		= "|cFF40bfbf",
-	helpOpt 	= "|cFFbfbf40",
+	-- helpOpt 	= "|cFFbfbf40",
 	opt_format 	= "|cFF80bf40",
 	opt_ex	 	= "|cFF4080bf",
 	opt_set	 	= "|cFFbf40bf",
@@ -421,34 +430,34 @@ function PrintGet(key)
 		pc["value"] .. Storage[key] .. "|r"
 	)
 end
-function PrintHelp(help_key, stored_key) -- obsolete
-	-- stored_key = stored_key and stored_key or help_key -- if stored_key is nil, set it to help_key instead
-	if cmd_help[help_key] ~= nil then
-		print()
-		print(
-			pc["addon"] .. "LumpaTotem|r " .. 
-			pc["helpOpt"] .. "FORMAT|r:    " .. 
-			pc["slash"] .. "/lt " ..
-			pc["cmd"] .. cmd_help[help_key]["format_cmd"] .. "|r " .. 
-			pc["value"] .. cmd_help[help_key]["format_val"] .. "|r"
-		)
-		print(
-			pc["addon"] .. "LumpaTotem|r " .. 
-			pc["helpOpt"] .. "EXAMPLE|r:   " .. 
-			pc["slash"] .. "/lt " ..
-			pc["cmd"] .. cmd_help[help_key]["ex_cmd"] .. " |r" .. 
-			pc["value"] .. cmd_help[help_key]["ex_val"] .. "|r"
-		)
-		print(
-			pc["addon"] .. "LumpaTotem|r " .. 
-			pc["helpOpt"] .. "CURRENT|r:    " .. 
-			pc["slash"] .. "/lt " ..
-			pc["cmd"] .. stored_key .. "|r " .. 
-			pc["value"] .. Storage[stored_key] .. "|r"
-		)
-		print()
-	end
-end
+-- function PrintHelp(help_key, stored_key) -- obsolete
+-- 	-- stored_key = stored_key and stored_key or help_key -- if stored_key is nil, set it to help_key instead
+-- 	if cmd_help[help_key] ~= nil then
+-- 		print()
+-- 		print(
+-- 			pc["addon"] .. "LumpaTotem|r " .. 
+-- 			pc["helpOpt"] .. "FORMAT|r:    " .. 
+-- 			pc["slash"] .. "/lt " ..
+-- 			pc["cmd"] .. cmd_help[help_key]["format_cmd"] .. "|r " .. 
+-- 			pc["value"] .. cmd_help[help_key]["format_val"] .. "|r"
+-- 		)
+-- 		print(
+-- 			pc["addon"] .. "LumpaTotem|r " .. 
+-- 			pc["helpOpt"] .. "EXAMPLE|r:   " .. 
+-- 			pc["slash"] .. "/lt " ..
+-- 			pc["cmd"] .. cmd_help[help_key]["ex_cmd"] .. " |r" .. 
+-- 			pc["value"] .. cmd_help[help_key]["ex_val"] .. "|r"
+-- 		)
+-- 		print(
+-- 			pc["addon"] .. "LumpaTotem|r " .. 
+-- 			pc["helpOpt"] .. "CURRENT|r:    " .. 
+-- 			pc["slash"] .. "/lt " ..
+-- 			pc["cmd"] .. stored_key .. "|r " .. 
+-- 			pc["value"] .. Storage[stored_key] .. "|r"
+-- 		)
+-- 		print()
+-- 	end
+-- end
 
 
 
@@ -546,7 +555,8 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 			Storage[short] = b;
 			PrintSet(short, b);
 		else
-			PrintHelp("included", short)
+			-- PrintHelp("included", short)
+			PrintGet(short);
 		end
 
 	else
@@ -596,6 +606,7 @@ local function addEventListeners(self)
 	addon.core.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 	addon.core.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 	addon.core.frame:RegisterEvent("UNIT_AURA")
+	addon.core.frame:RegisterEvent("PLAYER_TOTEM_UPDATE")
 end
 
 local function onDragStart(self, mousebutton, ...)
@@ -658,6 +669,9 @@ local function onEvent(self, event, ...)
 		if unit == "player" then
 			CountBuffs()
 		end
+	elseif event == "PLAYER_TOTEM_UPDATE" then
+		-- print("PLAYER_TOTEM_UPDATE")
+		LumpaTotem_LoopTick()
 	end
 end
 
@@ -666,8 +680,9 @@ function CountBuffs()
 		buffs[buff] = false
 	end
 
-	for i=1,16 do
-		name = UnitBuff("player", i)
+	for i=1,32 do
+		-- name = UnitBuff("player", i)
+		name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitBuff("player", i, "PLAYER")
 		if buffs[name] ~= nil then
 			buffs[name] = true
 		end
@@ -767,7 +782,43 @@ end
 function LumpaTotem_Loop()
 	LumpaTotem_LoopTick()
 	C_Timer.After(0.1, LumpaTotem_Loop)
+	
+	-- if totemAlive then
+		-- C_Timer.After(1, TotemUpdateText_timeLeft(idx))
+	-- end
 end
+
+-- function TotemUpdateText_timeLeft(idx)
+-- 	print("TotemUpdateText_timeLeft idx =",idx)
+-- 	local btn = buttons[idx]
+-- 	local arg1, totemActual, startTime, duration = GetTotemInfo(idx)
+-- 	local timeLeft = GetTotemTimeLeft(idx)
+
+-- 	local totemSelected = Storage[el]["name"]
+
+-- 	totemSelected = TrimTotemString(totemSelected)
+-- 	totemActual = TrimTotemString(totemActual)
+
+-- 	local totemAlive = totemActual ~= nil and totemActual ~= "";
+
+-- 	local otherTotem = false;
+-- 	if totemActual ~= nil and totemActual ~= "" then
+-- 		otherTotem = totemActual ~= totemSelected;
+-- 	end
+
+-- 	if otherTotem then
+-- 		btn.mini.text_timeLeft:SetText(timeLeft)
+-- 	else
+-- 		btn.text_timeLeft:SetText(timeLeft)
+-- 	end
+
+-- 	if totemAlive then
+-- 		C_Timer.After(1, TotemUpdateText_timeLeft(idx))
+-- 	else
+-- 		btn.text_timeLeft:SetText("")
+-- 		btn.mini.text_timeLeft:SetText("")
+-- 	end
+-- end
 
 function LumpaTotem_LoopTick()
 	-- placedElements = {
@@ -776,68 +827,207 @@ function LumpaTotem_LoopTick()
 	-- 	["water"] = false,
 	-- 	["air"] = false
 	-- }
-
+	-- print()
 	for i=1,4 do
-		local arg1, totemName, startTime, duration = GetTotemInfo(i)
+		local arg1, totemActual, startTime, duration = GetTotemInfo(i)
+		-- print("totem_actual", totem_actual)
 		timeLeft = GetTotemTimeLeft(i)
 		el = elements[i]
+		-- print(totemName, el)
 
 		btn = activeTotems[el]["btn"]
-		if timeLeft == 0 then
-			CountBuffs()
-			btn.text_timeLeft:SetText("")
-		else
-			btn.text_timeLeft:SetText(timeLeft)
+		-- btn = buttons[i]
+
+
+		local totemSelected = Storage[el]["name"]
+		local sel_start, sel_duration = GetSpellCooldown(totemSelected)
+		local sel_usable, sel_oom = IsUsableSpell(totemSelected)
+		if sel_start ~= nil and sel_duration ~= nil then
+			btn.cd:SetCooldown(sel_start, sel_duration)
 		end
 
-		local totemName = Storage[el]["name"]
-		local start, duration = GetSpellCooldown(totemName)
-		local usable, oom = IsUsableSpell(totemName)
-		-- print(Storage[el]["name"], start, duration)
-		if start ~= nil and duration ~= nil then
-			btn.cd:SetCooldown(start, duration)
-		end
+		-- local act_start, act_duration, act_usable, act_oom = nil, nil, nil, nil;
+		-- if totemActual ~= nil and totemActual ~= "" then
+		-- 	act_start, act_duration = GetSpellCooldown(totemActual)
+		-- 	act_usable, act_oom = IsUsableSpell(totemActual)
+		-- 	if act_start ~= nil and act_duration ~= nil then
+		-- 		btn.mini.cd:SetCooldown(act_start, act_duration)
+		-- 	end
+		-- end
+
+
 
 		btn.texture:SetVertexColor(1,1,1) -- temp test
+		btn.mini.texture:SetVertexColor(1,1,1) -- temp test
 
-		totemName = TrimTotemString(totemName)
-		if totemName ~= "" then
-			local id = revLookup_totemIds[el][totemName]
-			auraName = tbl[el][id]["buff"]
+		totemSelected = TrimTotemString(totemSelected)
+		totemActual = TrimTotemString(totemActual)
 
-			-- local c_act = {r=38/255, g=217/255, b=38/255}
-			-- local c_oom = {r=38/255, g=38/255, b=38/255}
-			-- local c_oor = {r=217/255, g=38/255, b=38/255}
-			-- local c_non = {r=1, g=1, b=1}
+		local totemAlive = totemActual ~= nil and totemActual ~= "";
 
-			local c_act = {r=0/255, g=255/255, b=0/255}
-			-- local c_actm= {r=32/255, g=96/255, b=32/255}
-			local c_oom = {r=64/255, g=64/255, b=64/255}
-			local c_oor = {r=255/255, g=0/255, b=0/255}
-			local c_oomr= {r=96/255, g=32/255, b=32/255}
-			local c_non = {r=1, g=1, b=1}
+		local sel_id = nil;
+		local act_id = nil;
+		local sel_auraName = nil;
+		local act_auraName = nil;
 
-			if timeLeft > 0 then -- totem is alive
-				if auraName ~= nil then -- totem has aura
-					if buffs[auraName] == true then -- aura reaching me
-						btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+
+		local otherTotem = false;
+		if totemActual ~= nil and totemActual ~= "" then
+			otherTotem = totemActual ~= totemSelected;
+		end
+
+
+		if totemSelected ~= "" and totemSelected ~= nil then
+			sel_id = revLookup_totemIds[el][totemSelected]
+			sel_auraName = tbl[el][sel_id]["buff"]
+		end
+
+
+		if totemActual ~= "" and totemActual ~= nil then
+			act_id = revLookup_totemIds[el][totemActual]
+			act_auraName = tbl[el][act_id]["buff"]
+
+			local act_start, act_duration = GetSpellCooldown(totemActual)
+			local act_usable, act_oom = IsUsableSpell(totemActual)
+			-- print(Storage[el]["name"], start, duration)
+			if act_start ~= nil and act_duration ~= nil then
+				btn.mini.cd:SetCooldown(act_start, act_duration)
+			end
+
+		end
+
+		-- print("totemActual", totemActual, "    totemSelected", totemSelected, "     otherTotem", otherTotem)
+
+		-- if timeLeft == 0 then
+		if totemAlive == false then
+			CountBuffs()
+			btn.text_timeLeft:SetText("")
+			btn.mini.text_timeLeft:SetText("")
+			-- btn.mini:Hide()
+		else
+			if otherTotem then
+				btn.mini.text_timeLeft:SetText(timeLeft)
+				btn.text_timeLeft:SetText("")
+			else
+				btn.text_timeLeft:SetText(timeLeft)
+			end
+		end
+
+		-- local c_act = {r=38/255, g=217/255, b=38/255}
+		-- local c_oom = {r=38/255, g=38/255, b=38/255}
+		-- local c_oor = {r=217/255, g=38/255, b=38/255}
+		-- local c_non = {r=1, g=1, b=1}
+
+		-- local c_act = {r=0/255, g=255/255, b=0/255}
+		-- local c_actm= {r=32/255, g=96/255, b=32/255}
+		-- local c_oom = {r=64/255, g=64/255, b=64/255}
+		-- local c_oor = {r=255/255, g=0/255, b=0/255}
+		-- local c_oomr= {r=96/255, g=32/255, b=32/255}
+		-- local c_non = {r=1, g=1, b=1}
+
+		-- print("totemSelected", totemSelected, "     totemActual", totemActual)
+		-- print("otherTotem", otherTotem)
+
+		-- local t_alive = timeLeft > 0
+		-- local t_hasAura = auraName ~= nil
+		-- local t_auraReachingMe = buffs[auraName]
+
+		-- if t_alive and t_hasAura and t_auraReachingMe then
+		-- 	if oom then
+		-- 		btn.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+		-- 	else
+		-- 		btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+		-- 	end
+		-- local otherAura
+		-- if timeLeft > 0 then -- totem is alive
+		if totemAlive then
+
+			-- if sel_auraName ~= nil then -- totem has aura
+			-- 	if buffs[sel_auraName] == true then -- aura reaching me
+			-- 		if oom==true then
+			-- 			btn.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+			-- 		else
+			-- 			btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+			-- 		end
+			-- 	else -- aura not reaching me
+			-- 		if oom==true then
+			-- 			btn.texture:SetVertexColor(c_oomr.r, c_oomr.g, c_oomr.b)
+			-- 		else
+			-- 			btn.texture:SetVertexColor(c_oor.r, c_oor.g, c_oor.b)
+			-- 		end
+			-- 	end
+			-- else -- totem is alive, but has no aura
+			-- 	if oom==true then
+			-- 		btn.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+			-- 	else
+			-- 		btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+			-- 	end
+			-- end
+
+			if otherTotem then
+				-- btn.mini.text_timeLeft:SetText(timeLeft)
+				if act_auraName ~= nil then -- totem has aura
+					if buffs[act_auraName] == true then -- aura reaching me
+						if act_oom==true then
+							btn.mini.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+						else
+							btn.mini.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+						end
 					else -- aura not reaching me
-						if oom==true then
+						if act_oom==true then
+							btn.mini.texture:SetVertexColor(c_oomr.r, c_oomr.g, c_oomr.b)
+						else
+							btn.mini.texture:SetVertexColor(c_oor.r, c_oor.g, c_oor.b)
+						end
+					end
+				else -- totem is alive, but has no aura
+					if act_oom==true then
+						btn.mini.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+					else
+						btn.mini.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+					end
+				end
+			else
+				-- btn.text_timeLeft:SetText(timeLeft)
+				if sel_auraName ~= nil then -- totem has aura
+					if buffs[sel_auraName] == true then -- aura reaching me
+						if sel_oom==true then
+							btn.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+						else
+							btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+						end
+					else -- aura not reaching me
+						if sel_oom==true then
 							btn.texture:SetVertexColor(c_oomr.r, c_oomr.g, c_oomr.b)
 						else
 							btn.texture:SetVertexColor(c_oor.r, c_oor.g, c_oor.b)
 						end
 					end
 				else -- totem is alive, but has no aura
-					btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
-				end
-			else -- totem is dead
-				if oom==true then
-					btn.texture:SetVertexColor(c_oom.r, c_oom.g, c_oom.b)
-				else
-					btn.texture:SetVertexColor(c_non.r, c_non.g, c_non.b)
+					if sel_oom==true then
+						btn.texture:SetVertexColor(c_actm.r, c_actm.g, c_actm.b)
+					else
+						btn.texture:SetVertexColor(c_act.r, c_act.g, c_act.b)
+					end
 				end
 			end
+
+
+
+		else -- totem is dead
+			btn.mini:Hide()
+			if sel_oom==true then
+				btn.texture:SetVertexColor(c_oom.r, c_oom.g, c_oom.b)
+			else
+				btn.texture:SetVertexColor(c_non.r, c_non.g, c_non.b)
+			end
+		end
+
+		if otherTotem then
+			btn.mini.texture:SetTexture(tbl[el][act_id]["img"])
+			btn.mini:Show()
+		else
+			btn.mini:Hide()
 		end
 	end
 end
@@ -861,6 +1051,7 @@ function CreateTotemBarFrame()
 	-- f:SetBackdropBorderColor(0, 0, 0)
 
 	for i,v in ipairs(Storage["order"]) do
+	-- for i,v in ipairs(elements) do
 		local btn = CreateFrame("Button", f, UIParent, "SecureActionButtonTemplate")
 		btn:SetAttribute("type", "spell"); -- Unmodified left click.
 
@@ -902,6 +1093,25 @@ function CreateTotemBarFrame()
 		btn.cd:SetAllPoints()
 		btn.cd:SetDrawEdge(false)
 		btn.cd:Show()
+
+		-- MINI
+		btn.mini = CreateFrame("Frame", btn, UIParent);
+		local t_mini = btn.mini:CreateTexture(nil, "ARTWORK")
+		t_mini:SetTexture("Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
+		t_mini:SetAllPoints()
+		btn.mini:SetPoint("TOPRIGHT", btn)
+		btn.mini:SetWidth(iconWidth*Storage["scale"] * miniScale)
+		btn.mini:SetHeight(iconHeight*Storage["scale"] * miniScale)
+		btn.mini.texture = t_mini
+
+		btn.mini.cd = CreateFrame("Cooldown", "mini_cooldown", btn.mini, "CooldownFrameTemplate")
+		btn.mini.cd:SetAllPoints()
+		btn.mini.cd:SetDrawEdge(false)
+		btn.mini.cd:Show()
+
+		btn.mini.text_timeLeft = btn.mini:CreateFontString(nil, "ARTWORK")
+		btn.mini.text_timeLeft:SetFont(iconFont, 25 * miniScale, "OUTLINE")
+		btn.mini.text_timeLeft:SetPoint("CENTER", 0, 0)
 
 
 		local t = btn:CreateTexture(nil, "BACKGROUND")
@@ -951,6 +1161,7 @@ function CreateTotemBarFrame()
 				btn.text_name:SetText(sel_short)
 
 				SetMacro(macroName)
+				LumpaTotem_LoopTick()
 			end
 		end)
 
@@ -967,6 +1178,8 @@ function CreateTotemBarFrame()
 					SetMacro(macroName)
 
 				-- elseif button == "LeftButton" then
+				-- 	print("left button click")
+				-- 	LumpaTotem_LoopTick()
 				-- 	name = Storage[el]["name"]
 				-- 	print(name)
 				-- 	-- CastSpellByName(name)
