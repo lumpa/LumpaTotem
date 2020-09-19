@@ -1,5 +1,8 @@
--- local LumpaTotem = LibStub("AceAddon-3.0"):NewAddon("LumpaTotem")
-local LumpaTotem = LibStub("AceAddon-3.0"):NewAddon("LumpaTotem", "AceTimer-3.0")
+local LumpaTotem = LibStub("AceAddon-3.0"):GetAddon("LumpaTotem", "AceTimer-3.0")
+if LumpaTotem == nil then
+	LumpaTotem = LibStub("AceAddon-3.0"):NewAddon("LumpaTotem", "AceTimer-3.0")
+end
+
 local addonName, addon = ...
 
 local macroName = "LumpaTotem"
@@ -529,6 +532,15 @@ SlashCmdList["LUMPATOTEM"] = function(msg)
 	elseif argv[1] == "startattack" then
 		if argv[2] ~= nil then
 			Storage["startattack"] = tonumber(argv[2])
+			SetMacro(macroName)
+			PrintSet(argv[1], argv[2]);
+		else
+			PrintGet(argv[1]);
+		end
+
+	elseif argv[1] == "stand" then
+		if argv[2] ~= nil then
+			Storage["stand"] = tonumber(argv[2])
 			SetMacro(macroName)
 			PrintSet(argv[1], argv[2]);
 		else
@@ -1207,6 +1219,11 @@ function SetMacro(name)
 	_name, _, _, _ = GetMacroInfo(name)
 	
 	local body = ""
+
+	if Storage["stand"] == 1 then
+		body = body .. "/stand\n"
+	end
+
 	if Storage["startattack"] == 1 then
 		body = body .. "/startattack\n"
 	end
