@@ -588,12 +588,17 @@ function ResizeFrames()
 		local btn = buttons[i]
 		btn:SetWidth(iconWidth * scale)
 		btn:SetHeight(iconHeight * scale)
-		btn:SetBackdrop({
+		-- btn:SetBackdrop({
+		-- 	edgeFile = [[Interface\Buttons\WHITE8x8]],
+		-- 	edgeSize = 5 * scale,
+		-- })
+		btn.border:SetBackdrop({
 			edgeFile = [[Interface\Buttons\WHITE8x8]],
 			edgeSize = 5 * scale,
 		})
 		c = element_colors[v]
-		btn:SetBackdropBorderColor(c.r, c.g, c.b)
+		-- btn:SetBackdropBorderColor(c.r, c.g, c.b)
+		btn.border:SetBackdropBorderColor(c.r, c.g, c.b)
 
 		btn.text_name:SetWidth(iconWidth * scale)
 		btn.text_name:SetFont(iconFont, 13 * scale, "OUTLINE")
@@ -702,16 +707,17 @@ function CountBuffs()
 end
 
 function LumpaTotem:OnInitialize()
-	print("init");
+	print("LumpaTotem TBCC fulhack loaded.");
 
 	-- CreateReverseLookupShorts();
 	
 	addon.core = {};
 	addon.core.frame = CreateFrame("Frame");
+	-- addon.core.frame = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate");
 	addon.core.frame:SetScript("OnEvent", onEvent);
 	addEventListeners();
 
-	print(Storage)
+	-- print(Storage)
 	if (Storage == nil) then
 		print("storage was nil")
 		Storage = {}
@@ -875,6 +881,8 @@ function LumpaTotem_LoopTick()
 		totemSelected = TrimTotemString(totemSelected)
 		totemActual = TrimTotemString(totemActual)
 
+		-- print(totemSelected, totemActual)
+
 		local totemAlive = totemActual ~= nil and totemActual ~= "";
 
 		local sel_id = nil;
@@ -884,18 +892,20 @@ function LumpaTotem_LoopTick()
 
 
 		local otherTotem = false;
-		if totemActual ~= nil and totemActual ~= "" then
+		if totemActual ~= nil and totemActual ~= "" and totemActual ~= "Unknown" then
 			otherTotem = totemActual ~= totemSelected;
 		end
 
 
-		if totemSelected ~= "" and totemSelected ~= nil then
+		if totemSelected ~= "" and totemSelected ~= nil and totemSelected ~= "Unknown" then
 			sel_id = revLookup_totemIds[el][totemSelected]
 			sel_auraName = tbl[el][sel_id]["buff"]
 		end
 
 
-		if totemActual ~= "" and totemActual ~= nil then
+		-- if totemActual ~= "" and totemActual ~= nil then
+		if totemActual ~= "" and totemActual ~= nil and totemActual ~= "Unknown" then
+			-- print("totemActual:",totemActual, "      el:",el)
 			act_id = revLookup_totemIds[el][totemActual]
 			act_auraName = tbl[el][act_id]["buff"]
 
@@ -1047,7 +1057,7 @@ end
 
 
 function LumpaTotem_OnLoad()
-	print("on load");
+	-- print("on load");
 end
 
 function CreateTotemBarFrame()
@@ -1064,7 +1074,10 @@ function CreateTotemBarFrame()
 
 	for i,v in ipairs(Storage["order"]) do
 	-- for i,v in ipairs(elements) do
-		local btn = CreateFrame("Button", f, UIParent, "SecureActionButtonTemplate")
+		-- local btn = CreateFrame("Button", f, UIParent, "SecureActionButtonTemplate")
+		local btn = CreateFrame("Button", f, UIParent, BackdropTemplateMixin and "SecureActionButtonTemplate")
+		-- local btn = CreateFrame("Button", f, UIParent, BackdropTemplateMixin and "BackdropTemplate")
+		-- local btn = CreateFrame("Button", f, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 		btn:SetAttribute("type", "spell"); -- Unmodified left click.
 
 		-- btn:SetWidth(64)
@@ -1105,6 +1118,12 @@ function CreateTotemBarFrame()
 		btn.cd:SetAllPoints()
 		btn.cd:SetDrawEdge(false)
 		btn.cd:Show()
+
+		-- BORDER
+		btn.border = CreateFrame("Frame", "btn_border", btn, BackdropTemplateMixin and "BackdropTemplate")
+		btn.border:SetAllPoints()
+		-- btn.border:SetDrawEdge(false)
+		btn.border:Show()
 
 		-- MINI
 		btn.mini = CreateFrame("Frame", btn, UIParent);
