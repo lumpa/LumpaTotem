@@ -193,7 +193,7 @@ local tbl = {
 		{
 			name = "Totem of Wrath",
 			short = "ToW",
-			buff = nil,
+			buff = "Totem of Wrath",
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_totemofwrath.tga"
 		}
 	},
