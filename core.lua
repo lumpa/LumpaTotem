@@ -55,12 +55,14 @@ local buffs = {
 	["Healing Stream"] = false,
 	["Mana Spring"] = false,
 	["Fire Resistance"] = false,
+	["Totem of Wrath"] = false,
 
 	["Grace of Air"] = false,
 	["Grounding Totem Effect"] = false,
 	["Nature Resistance"] = false,
 	["Sentry Totem"] = false,
-	["Windwall"] = false
+	["Windwall"] = false,
+	["Wrath of Air Totem"] = false
 }
 
 local activeTotems = {
@@ -193,7 +195,8 @@ local tbl = {
 		{
 			name = "Totem of Wrath",
 			short = "ToW",
-			buff = "Totem of Wrath",
+			-- buff = nil,
+			buff = "Totem of Wrath", -- derp
 			img = "Interface\\Addons\\LumpaTotem\\img\\fire_totemofwrath.tga"
 		}
 	},
@@ -281,7 +284,7 @@ local tbl = {
 		{
 			name = "Wrath of Air Totem",
 			short = "WoA",
-			buff = nil,
+			buff = "Wrath of Air Totem",
 			img = "Interface\\Addons\\LumpaTotem\\img\\air_wrathofair.tga"
 		}
 	}
